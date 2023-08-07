@@ -1,0 +1,343 @@
+<?xml version="1.0" encoding="utf-8"?>
+<edmx:Edmx Version="4.0" xmlns:edmx="http://docs.oasis-open.org/odata/ns/edmx">
+    <edmx:Reference Uri="https://sap.github.io/odata-vocabularies/vocabularies/Common.xml">
+        <edmx:Include Alias="Common" Namespace="com.sap.vocabularies.Common.v1"/>
+    </edmx:Reference>
+    <edmx:Reference Uri="https://oasis-tcs.github.io/odata-vocabularies/vocabularies/Org.OData.Core.V1.xml">
+        <edmx:Include Alias="Core" Namespace="Org.OData.Core.V1"/>
+    </edmx:Reference>
+    <edmx:Reference Uri="https://sap.github.io/odata-vocabularies/vocabularies/UI.xml">
+        <edmx:Include Alias="UI" Namespace="com.sap.vocabularies.UI.v1"/>
+    </edmx:Reference>
+    <edmx:DataServices>
+        <Schema Namespace="adobe" xmlns="http://docs.oasis-open.org/odata/ns/edm">
+            <EntityContainer Name="EntityContainer">
+                <EntitySet Name="Clients" EntityType="adobe.Clients">
+                    <NavigationPropertyBinding Path="country" Target="Countries"/>
+                </EntitySet>
+                <EntitySet Name="Responsibles" EntityType="adobe.Responsibles"/>
+                <EntitySet Name="EmittedBy" EntityType="adobe.EmittedBy">
+                    <NavigationPropertyBinding Path="country" Target="Countries"/>
+                </EntitySet>
+                <EntitySet Name="Invoices" EntityType="adobe.Invoices">
+                    <NavigationPropertyBinding Path="client" Target="Clients"/>
+                    <NavigationPropertyBinding Path="emittedBy" Target="EmittedBy"/>
+                    <NavigationPropertyBinding Path="responsible" Target="Responsibles"/>
+                    <NavigationPropertyBinding Path="invoiceDetail" Target="InvoiceDetails"/>
+                </EntitySet>
+                <EntitySet Name="Countries" EntityType="adobe.Countries">
+                    <NavigationPropertyBinding Path="texts" Target="Countries_texts"/>
+                    <NavigationPropertyBinding Path="localized" Target="Countries_texts"/>
+                </EntitySet>
+                <EntitySet Name="InvoiceDetails" EntityType="adobe.InvoiceDetails">
+                    <NavigationPropertyBinding Path="currency" Target="Currencies"/>
+                    <NavigationPropertyBinding Path="invoice" Target="Invoices"/>
+                </EntitySet>
+                <EntitySet Name="Currencies" EntityType="adobe.Currencies">
+                    <NavigationPropertyBinding Path="texts" Target="Currencies_texts"/>
+                    <NavigationPropertyBinding Path="localized" Target="Currencies_texts"/>
+                </EntitySet>
+                <EntitySet Name="Countries_texts" EntityType="adobe.Countries_texts"/>
+                <EntitySet Name="Currencies_texts" EntityType="adobe.Currencies_texts"/>
+            </EntityContainer>
+            <EntityType Name="Clients">
+                <Key>
+                    <PropertyRef Name="ID"/>
+                </Key>
+                <Property Name="ID" Type="Edm.Guid" Nullable="false"/>
+                <Property Name="name" Type="Edm.String" MaxLength="30"/>
+                <Property Name="lastname" Type="Edm.String" MaxLength="30"/>
+                <Property Name="phone" Type="Edm.String" MaxLength="20"/>
+                <NavigationProperty Name="country" Type="adobe.Countries">
+                    <ReferentialConstraint Property="country_code" ReferencedProperty="code"/>
+                </NavigationProperty>
+                <Property Name="country_code" Type="Edm.String" MaxLength="3"/>
+                <Property Name="companyName" Type="Edm.String" MaxLength="255"/>
+            </EntityType>
+            <EntityType Name="Responsibles">
+                <Key>
+                    <PropertyRef Name="ID"/>
+                </Key>
+                <Property Name="ID" Type="Edm.Guid" Nullable="false"/>
+                <Property Name="name" Type="Edm.String" MaxLength="30"/>
+                <Property Name="lastname" Type="Edm.String" MaxLength="30"/>
+                <Property Name="phone" Type="Edm.String" MaxLength="20"/>
+            </EntityType>
+            <EntityType Name="EmittedBy">
+                <Key>
+                    <PropertyRef Name="ID"/>
+                </Key>
+                <Property Name="ID" Type="Edm.Guid" Nullable="false"/>
+                <Property Name="companyName" Type="Edm.String" MaxLength="255"/>
+                <Property Name="address" Type="Edm.String" MaxLength="255"/>
+                <Property Name="representative" Type="Edm.String" MaxLength="100"/>
+                <NavigationProperty Name="country" Type="adobe.Countries">
+                    <ReferentialConstraint Property="country_code" ReferencedProperty="code"/>
+                </NavigationProperty>
+                <Property Name="country_code" Type="Edm.String" MaxLength="3"/>
+                <Property Name="phone" Type="Edm.String" MaxLength="20"/>
+                <Property Name="branch" Type="Edm.String" MaxLength="255"/>
+                <Property Name="account" Type="Edm.String" MaxLength="50"/>
+            </EntityType>
+            <EntityType Name="Invoices">
+                <Key>
+                    <PropertyRef Name="invoceNumber"/>
+                </Key>
+                <Property Name="createdAt" Type="Edm.DateTimeOffset" Precision="7"/>
+                <Property Name="createdBy" Type="Edm.String" MaxLength="255"/>
+                <Property Name="modifiedAt" Type="Edm.DateTimeOffset" Precision="7"/>
+                <Property Name="modifiedBy" Type="Edm.String" MaxLength="255"/>
+                <Property Name="invoceNumber" Type="Edm.String" MaxLength="20" Nullable="false"/>
+                <Property Name="note1" Type="Edm.String" MaxLength="255"/>
+                <Property Name="note2" Type="Edm.String" MaxLength="255"/>
+                <Property Name="date" Type="Edm.Date"/>
+                <NavigationProperty Name="client" Type="Collection(adobe.Clients)"/>
+                <Property Name="client_ID" Type="Edm.Guid"/>
+                <NavigationProperty Name="emittedBy" Type="Collection(adobe.EmittedBy)"/>
+                <Property Name="emittedBy_ID" Type="Edm.Guid"/>
+                <NavigationProperty Name="responsible" Type="adobe.Responsibles">
+                    <ReferentialConstraint Property="responsible_ID" ReferencedProperty="ID"/>
+                </NavigationProperty>
+                <Property Name="responsible_ID" Type="Edm.Guid"/>
+                <NavigationProperty Name="invoiceDetail" Type="Collection(adobe.InvoiceDetails)" Partner="invoice">
+                    <OnDelete Action="Cascade"/>
+                </NavigationProperty>
+            </EntityType>
+            <EntityType Name="Countries">
+                <Key>
+                    <PropertyRef Name="code"/>
+                </Key>
+                <Property Name="name" Type="Edm.String" MaxLength="255"/>
+                <Property Name="descr" Type="Edm.String" MaxLength="1000"/>
+                <Property Name="code" Type="Edm.String" MaxLength="3" Nullable="false"/>
+                <NavigationProperty Name="texts" Type="Collection(adobe.Countries_texts)">
+                    <OnDelete Action="Cascade"/>
+                </NavigationProperty>
+                <NavigationProperty Name="localized" Type="adobe.Countries_texts">
+                    <ReferentialConstraint Property="code" ReferencedProperty="code"/>
+                </NavigationProperty>
+            </EntityType>
+            <EntityType Name="InvoiceDetails">
+                <Key>
+                    <PropertyRef Name="ID"/>
+                </Key>
+                <Property Name="ID" Type="Edm.Guid" Nullable="false"/>
+                <Property Name="detail" Type="Edm.String" MaxLength="255"/>
+                <Property Name="price" Type="Edm.Decimal" Scale="2" Precision="7"/>
+                <NavigationProperty Name="currency" Type="adobe.Currencies">
+                    <ReferentialConstraint Property="currency_code" ReferencedProperty="code"/>
+                </NavigationProperty>
+                <Property Name="currency_code" Type="Edm.String" MaxLength="3"/>
+                <NavigationProperty Name="invoice" Type="adobe.Invoices" Partner="invoiceDetail">
+                    <ReferentialConstraint Property="invoice_invoceNumber" ReferencedProperty="invoceNumber"/>
+                </NavigationProperty>
+                <Property Name="invoice_invoceNumber" Type="Edm.String" MaxLength="20"/>
+            </EntityType>
+            <EntityType Name="Currencies">
+                <Key>
+                    <PropertyRef Name="code"/>
+                </Key>
+                <Property Name="name" Type="Edm.String" MaxLength="255"/>
+                <Property Name="descr" Type="Edm.String" MaxLength="1000"/>
+                <Property Name="code" Type="Edm.String" MaxLength="3" Nullable="false"/>
+                <Property Name="symbol" Type="Edm.String" MaxLength="5"/>
+                <Property Name="minorUnit" Type="Edm.Int16"/>
+                <NavigationProperty Name="texts" Type="Collection(adobe.Currencies_texts)">
+                    <OnDelete Action="Cascade"/>
+                </NavigationProperty>
+                <NavigationProperty Name="localized" Type="adobe.Currencies_texts">
+                    <ReferentialConstraint Property="code" ReferencedProperty="code"/>
+                </NavigationProperty>
+            </EntityType>
+            <EntityType Name="Countries_texts">
+                <Key>
+                    <PropertyRef Name="locale"/>
+                    <PropertyRef Name="code"/>
+                </Key>
+                <Property Name="locale" Type="Edm.String" MaxLength="14" Nullable="false"/>
+                <Property Name="name" Type="Edm.String" MaxLength="255"/>
+                <Property Name="descr" Type="Edm.String" MaxLength="1000"/>
+                <Property Name="code" Type="Edm.String" MaxLength="3" Nullable="false"/>
+            </EntityType>
+            <EntityType Name="Currencies_texts">
+                <Key>
+                    <PropertyRef Name="locale"/>
+                    <PropertyRef Name="code"/>
+                </Key>
+                <Property Name="locale" Type="Edm.String" MaxLength="14" Nullable="false"/>
+                <Property Name="name" Type="Edm.String" MaxLength="255"/>
+                <Property Name="descr" Type="Edm.String" MaxLength="1000"/>
+                <Property Name="code" Type="Edm.String" MaxLength="3" Nullable="false"/>
+            </EntityType>
+            <Annotations Target="adobe.Clients/country">
+                <Annotation Term="Common.Label" String="{i18n>Country}"/>
+                    <Annotation Term="Core.Description" String="{i18n>CountryCode.Description}"/>
+                    </Annotations>
+                    <Annotations Target="adobe.Clients/country_code">
+                        <Annotation Term="Common.Label" String="{i18n>Country}"/>
+                            <Annotation Term="Common.ValueList">
+                                <Record Type="Common.ValueListType">
+                                    <PropertyValue Property="Label" String="{i18n>Country}"/>
+                                        <PropertyValue Property="CollectionPath" String="Countries"/>
+                                        <PropertyValue Property="Parameters">
+                                            <Collection>
+                                                <Record Type="Common.ValueListParameterInOut">
+                                                    <PropertyValue Property="LocalDataProperty" PropertyPath="country_code"/>
+                                                    <PropertyValue Property="ValueListProperty" String="code"/>
+                                                </Record>
+                                                <Record Type="Common.ValueListParameterDisplayOnly">
+                                                    <PropertyValue Property="ValueListProperty" String="name"/>
+                                                </Record>
+                                            </Collection>
+                                        </PropertyValue>
+                                    </Record>
+                                </Annotation>
+                                <Annotation Term="Core.Description" String="{i18n>CountryCode.Description}"/>
+                                </Annotations>
+                                <Annotations Target="adobe.EmittedBy/country">
+                                    <Annotation Term="Common.Label" String="{i18n>Country}"/>
+                                        <Annotation Term="Core.Description" String="{i18n>CountryCode.Description}"/>
+                                        </Annotations>
+                                        <Annotations Target="adobe.EmittedBy/country_code">
+                                            <Annotation Term="Common.Label" String="{i18n>Country}"/>
+                                                <Annotation Term="Common.ValueList">
+                                                    <Record Type="Common.ValueListType">
+                                                        <PropertyValue Property="Label" String="{i18n>Country}"/>
+                                                            <PropertyValue Property="CollectionPath" String="Countries"/>
+                                                            <PropertyValue Property="Parameters">
+                                                                <Collection>
+                                                                    <Record Type="Common.ValueListParameterInOut">
+                                                                        <PropertyValue Property="LocalDataProperty" PropertyPath="country_code"/>
+                                                                        <PropertyValue Property="ValueListProperty" String="code"/>
+                                                                    </Record>
+                                                                    <Record Type="Common.ValueListParameterDisplayOnly">
+                                                                        <PropertyValue Property="ValueListProperty" String="name"/>
+                                                                    </Record>
+                                                                </Collection>
+                                                            </PropertyValue>
+                                                        </Record>
+                                                    </Annotation>
+                                                    <Annotation Term="Core.Description" String="{i18n>CountryCode.Description}"/>
+                                                    </Annotations>
+                                                    <Annotations Target="adobe.Invoices/createdAt">
+                                                        <Annotation Term="UI.HiddenFilter" Bool="true"/>
+                                                        <Annotation Term="Core.Immutable" Bool="true"/>
+                                                        <Annotation Term="Core.Computed" Bool="true"/>
+                                                        <Annotation Term="Common.Label" String="{i18n>CreatedAt}"/>
+                                                        </Annotations>
+                                                        <Annotations Target="adobe.Invoices/createdBy">
+                                                            <Annotation Term="UI.HiddenFilter" Bool="true"/>
+                                                            <Annotation Term="Core.Immutable" Bool="true"/>
+                                                            <Annotation Term="Core.Computed" Bool="true"/>
+                                                            <Annotation Term="Core.Description" String="{i18n>UserID.Description}"/>
+                                                                <Annotation Term="Common.Label" String="{i18n>CreatedBy}"/>
+                                                                </Annotations>
+                                                                <Annotations Target="adobe.Invoices/modifiedAt">
+                                                                    <Annotation Term="UI.HiddenFilter" Bool="true"/>
+                                                                    <Annotation Term="Core.Computed" Bool="true"/>
+                                                                    <Annotation Term="Common.Label" String="{i18n>ChangedAt}"/>
+                                                                    </Annotations>
+                                                                    <Annotations Target="adobe.Invoices/modifiedBy">
+                                                                        <Annotation Term="UI.HiddenFilter" Bool="true"/>
+                                                                        <Annotation Term="Core.Computed" Bool="true"/>
+                                                                        <Annotation Term="Core.Description" String="{i18n>UserID.Description}"/>
+                                                                            <Annotation Term="Common.Label" String="{i18n>ChangedBy}"/>
+                                                                            </Annotations>
+                                                                            <Annotations Target="adobe.Countries">
+                                                                                <Annotation Term="UI.Identification">
+                                                                                    <Collection>
+                                                                                        <Record Type="UI.DataField">
+                                                                                            <PropertyValue Property="Value" Path="name"/>
+                                                                                        </Record>
+                                                                                    </Collection>
+                                                                                </Annotation>
+                                                                            </Annotations>
+                                                                            <Annotations Target="adobe.Countries/name">
+                                                                                <Annotation Term="Common.Label" String="{i18n>Name}"/>
+                                                                                </Annotations>
+                                                                                <Annotations Target="adobe.Countries/descr">
+                                                                                    <Annotation Term="Common.Label" String="{i18n>Description}"/>
+                                                                                    </Annotations>
+                                                                                    <Annotations Target="adobe.Countries/code">
+                                                                                        <Annotation Term="Common.Text" Path="name"/>
+                                                                                        <Annotation Term="Common.Label" String="{i18n>CountryCode}"/>
+                                                                                        </Annotations>
+                                                                                        <Annotations Target="adobe.InvoiceDetails/currency">
+                                                                                            <Annotation Term="Common.Label" String="{i18n>Currency}"/>
+                                                                                                <Annotation Term="Core.Description" String="{i18n>CurrencyCode.Description}"/>
+                                                                                                </Annotations>
+                                                                                                <Annotations Target="adobe.InvoiceDetails/currency_code">
+                                                                                                    <Annotation Term="Common.Label" String="{i18n>Currency}"/>
+                                                                                                        <Annotation Term="Common.ValueList">
+                                                                                                            <Record Type="Common.ValueListType">
+                                                                                                                <PropertyValue Property="Label" String="{i18n>Currency}"/>
+                                                                                                                    <PropertyValue Property="CollectionPath" String="Currencies"/>
+                                                                                                                    <PropertyValue Property="Parameters">
+                                                                                                                        <Collection>
+                                                                                                                            <Record Type="Common.ValueListParameterInOut">
+                                                                                                                                <PropertyValue Property="LocalDataProperty" PropertyPath="currency_code"/>
+                                                                                                                                <PropertyValue Property="ValueListProperty" String="code"/>
+                                                                                                                            </Record>
+                                                                                                                            <Record Type="Common.ValueListParameterDisplayOnly">
+                                                                                                                                <PropertyValue Property="ValueListProperty" String="name"/>
+                                                                                                                            </Record>
+                                                                                                                        </Collection>
+                                                                                                                    </PropertyValue>
+                                                                                                                </Record>
+                                                                                                            </Annotation>
+                                                                                                            <Annotation Term="Core.Description" String="{i18n>CurrencyCode.Description}"/>
+                                                                                                            </Annotations>
+                                                                                                            <Annotations Target="adobe.Currencies">
+                                                                                                                <Annotation Term="UI.Identification">
+                                                                                                                    <Collection>
+                                                                                                                        <Record Type="UI.DataField">
+                                                                                                                            <PropertyValue Property="Value" Path="name"/>
+                                                                                                                        </Record>
+                                                                                                                    </Collection>
+                                                                                                                </Annotation>
+                                                                                                            </Annotations>
+                                                                                                            <Annotations Target="adobe.Currencies/name">
+                                                                                                                <Annotation Term="Common.Label" String="{i18n>Name}"/>
+                                                                                                                </Annotations>
+                                                                                                                <Annotations Target="adobe.Currencies/descr">
+                                                                                                                    <Annotation Term="Common.Label" String="{i18n>Description}"/>
+                                                                                                                    </Annotations>
+                                                                                                                    <Annotations Target="adobe.Currencies/code">
+                                                                                                                        <Annotation Term="Common.Text" Path="name"/>
+                                                                                                                        <Annotation Term="Common.Label" String="{i18n>CurrencyCode}"/>
+                                                                                                                        </Annotations>
+                                                                                                                        <Annotations Target="adobe.Currencies/symbol">
+                                                                                                                            <Annotation Term="Common.Label" String="{i18n>CurrencySymbol}"/>
+                                                                                                                            </Annotations>
+                                                                                                                            <Annotations Target="adobe.Currencies/minorUnit">
+                                                                                                                                <Annotation Term="Common.Label" String="{i18n>CurrencyMinorUnit}"/>
+                                                                                                                                </Annotations>
+                                                                                                                                <Annotations Target="adobe.Countries_texts/locale">
+                                                                                                                                    <Annotation Term="Common.Label" String="{i18n>LanguageCode}"/>
+                                                                                                                                    </Annotations>
+                                                                                                                                    <Annotations Target="adobe.Countries_texts/name">
+                                                                                                                                        <Annotation Term="Common.Label" String="{i18n>Name}"/>
+                                                                                                                                        </Annotations>
+                                                                                                                                        <Annotations Target="adobe.Countries_texts/descr">
+                                                                                                                                            <Annotation Term="Common.Label" String="{i18n>Description}"/>
+                                                                                                                                            </Annotations>
+                                                                                                                                            <Annotations Target="adobe.Countries_texts/code">
+                                                                                                                                                <Annotation Term="Common.Text" Path="name"/>
+                                                                                                                                                <Annotation Term="Common.Label" String="{i18n>CountryCode}"/>
+                                                                                                                                                </Annotations>
+                                                                                                                                                <Annotations Target="adobe.Currencies_texts/locale">
+                                                                                                                                                    <Annotation Term="Common.Label" String="{i18n>LanguageCode}"/>
+                                                                                                                                                    </Annotations>
+                                                                                                                                                    <Annotations Target="adobe.Currencies_texts/name">
+                                                                                                                                                        <Annotation Term="Common.Label" String="{i18n>Name}"/>
+                                                                                                                                                        </Annotations>
+                                                                                                                                                        <Annotations Target="adobe.Currencies_texts/descr">
+                                                                                                                                                            <Annotation Term="Common.Label" String="{i18n>Description}"/>
+                                                                                                                                                            </Annotations>
+                                                                                                                                                            <Annotations Target="adobe.Currencies_texts/code">
+                                                                                                                                                                <Annotation Term="Common.Text" Path="name"/>
+                                                                                                                                                                <Annotation Term="Common.Label" String="{i18n>CurrencyCode}"/>
+                                                                                                                                                                </Annotations>
+                                                                                                                                                            </Schema>
+                                                                                                                                                        </edmx:DataServices>
+                                                                                                                                                    </edmx:Edmx>

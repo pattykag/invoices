@@ -1,0 +1,136 @@
+_schema-version: "3.1"
+ID: cap-abodeForms
+description: A simple CAP project.
+version: 1.0.0
+modules:
+- name: cap-abodeForms-srv
+  type: nodejs
+  path: gen/srv
+  requires:
+  - name: cap-abodeForms-auth
+  - name: cap-abodeForms-db
+  provides:
+  - name: srv-api
+    properties:
+      srv-url: ${default-url}
+  parameters:
+    buildpack: nodejs_buildpack
+  build-parameters:
+    builder: npm
+- name: cap-abodeForms-db-deployer
+  type: hdb
+  path: gen/db
+  requires:
+  - name: cap-abodeForms-db
+  parameters:
+    buildpack: nodejs_buildpack
+- name: cap-abodeForms-destination-content
+  type: com.sap.application.content
+  requires:
+  - name: cap-abodeForms-destination-service
+    parameters:
+      content-target: true
+  - name: cap-abodeForms_html_repo_host
+    parameters:
+      service-key:
+        name: cap-abodeForms_html_repo_host-key
+  - name: cap-abodeForms-auth
+    parameters:
+      service-key:
+        name: cap-abodeForms-auth-key
+  parameters:
+    content:
+      instance:
+        destinations:
+        - Name: formsroute_cap_abodeForms_html_repo_host
+          ServiceInstanceName: cap-abodeForms-html5-app-host-service
+          ServiceKeyName: cap-abodeForms_html_repo_host-key
+          sap.cloud.service: formsroute
+        - Authentication: OAuth2UserTokenExchange
+          Name: formsroute_cap_abodeForms_auth
+          ServiceKeyName: cap-abodeForms-auth-key
+          ServiceInstanceName: cap-abodeForms-auth
+          sap.cloud.service: formsroute
+        existing_destinations_policy: ignore
+  build-parameters:
+    no-source: true
+- name: cap-abodeForms-app-content
+  type: com.sap.application.content
+  path: .
+  requires:
+  - name: cap-abodeForms_html_repo_host
+    parameters:
+      content-target: true
+  build-parameters:
+    build-result: resources
+    requires:
+    - artifacts:
+      - comaccinvoice.zip
+      name: comaccinvoice
+      target-path: resources/
+- name: comaccinvoice
+  type: html5
+  path: app/invoice
+  build-parameters:
+    build-result: dist
+    builder: custom
+    commands:
+    - npm install
+    - npm run build:cf
+    supported-platforms: []
+resources:
+- name: cap-abodeForms-auth
+  type: org.cloudfoundry.managed-service
+  parameters:
+    config:
+      tenant-mode: dedicated
+      xsappname: cap-abodeForms-${org}-${space}
+    path: ./xs-security.json
+    service: xsuaa
+    service-plan: application
+- name: cap-abodeForms-db
+  type: com.sap.xs.hdi-container
+  parameters:
+    service: hana
+    service-plan: hdi-shared
+- name: cap-abodeForms-destination-service
+  type: org.cloudfoundry.managed-service
+  requires:
+    - name: srv-api
+  parameters:
+    config:
+      HTML5Runtime_enabled: true
+      init_data:
+        instance:
+          destinations:
+          - Authentication: NoAuthentication
+            Name: ui5
+            ProxyType: Internet
+            Type: HTTP
+            URL: https://ui5.sap.com
+          - Authentication: NoAuthentication
+            Name: cap-adobeformsdest
+            ProxyType: Internet
+            Type: HTTP
+            URL: ~{srv-api/srv-url}
+            HTML5.ForwardAuthToken: true
+            HTML5.DynamicDestination: true
+          existing_destinations_policy: update
+      version: 1.0.0
+    service: destination
+    service-name: cap-abodeForms-destination-service
+    service-plan: lite
+- name: cap-abodeForms_html_repo_host
+  type: org.cloudfoundry.managed-service
+  parameters:
+    service: html5-apps-repo
+    service-name: cap-abodeForms-html5-app-host-service
+    service-plan: app-host
+parameters:
+  deploy_mode: html5-repo
+  enable-parallel-deployments: true
+build-parameters:
+  before-all:
+  - builder: custom
+    commands:
+    - npx cds build --production
